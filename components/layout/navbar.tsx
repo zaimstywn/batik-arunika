@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Search, ShoppingBag, User } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Search, User } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { CartButton } from "@/components/cart/cart-button";
 import { MobileMenu } from "@/components/layout/mobile-menu";
 import { siteConfig } from "@/constants/site";
 import { createClient } from "@/lib/supabase/server";
@@ -54,16 +54,7 @@ export async function Navbar() {
           >
             <User />
           </Link>
-          <Link
-            href="/#koleksi"
-            aria-label="Keranjang"
-            className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "relative")}
-          >
-            <ShoppingBag />
-            <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px]">
-              0
-            </Badge>
-          </Link>
+          <CartButton />
 
           <MobileMenu links={navLinks} />
         </div>

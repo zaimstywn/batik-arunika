@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CheckCircle2, PackageX, ShoppingBag } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { ArrowLeft, CheckCircle2, PackageX } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
+import { AddToCart } from "@/components/cart/add-to-cart";
 import { getProductBySlug } from "@/features/products/services";
 import { formatIDR } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -96,10 +97,7 @@ export default async function ProductDetailPage({ params }: Props) {
             </div>
 
             <div className="space-y-4 pt-6 border-t border-border">
-              <Button size="lg" className="w-full gap-2" disabled>
-                <ShoppingBag className="size-5" />
-                {isOutOfStock ? "Stok Habis" : "Tambah ke Keranjang"}
-              </Button>
+              <AddToCart product={product} />
               <p className="text-center text-xs text-muted-foreground">
                 Pembayaran aman melalui Midtrans Sandbox • Pengiriman via Biteship
               </p>
