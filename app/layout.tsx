@@ -12,10 +12,17 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata = {
-  title: "Batik Arunika",
+export const metadata: Metadata = {
+  title: {
+    default: "Batik Arunika",
+    template: "%s | Batik Arunika",
+  },
   description:
-    "Marketplace UMKM Batik Indonesia dengan pengalaman belanja modern.",
+    "Batik Arunika adalah toko online resmi merek batik Indonesia. Keindahan Batik Indonesia, dalam Sentuhan Modern.",
+  applicationName: "Batik Arunika",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+  ),
 };
 
 export default function RootLayout({
@@ -25,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="id"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>

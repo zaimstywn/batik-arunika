@@ -4,7 +4,7 @@ export const siteConfig = {
   shortName: "Arunika",
 
   description:
-    "Marketplace UMKM Batik Indonesia yang menghadirkan pengalaman belanja modern.",
+    "Toko resmi Batik Arunika — menghadirkan keindahan batik Indonesia dalam sentuhan modern.",
 
   url: "https://batik-arunika.vercel.app",
 
