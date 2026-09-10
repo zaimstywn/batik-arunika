@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, ShoppingBag } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { CartItemRow } from "@/components/cart/cart-item-row";
 import { EmptyState } from "@/components/common/empty-state";
@@ -64,13 +64,13 @@ export default function CartPage() {
                     <span>Dihitung saat checkout</span>
                   </div>
                 </div>
-                <Button type="button" size="lg" className="w-full" disabled>
+                <Link
+                  href="/checkout"
+                  className={cn(buttonVariants({ size: "lg" }), "w-full")}
+                >
                   Lanjut ke Pembayaran
                   <ArrowRight />
-                </Button>
-                <p className="text-center text-xs text-muted-foreground">
-                  Checkout akan hadir pada milestone berikutnya.
-                </p>
+                </Link>
               </CardContent>
             </Card>
           </aside>
