@@ -1,19 +1,10 @@
-"use client";
-
 import Link from "next/link";
-import { useState } from "react";
-import { Menu, Search, ShoppingBag, User } from "lucide-react";
+import { Search, ShoppingBag, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { buttonVariants } from "@/components/ui/button";
+import { MobileMenu } from "@/components/layout/mobile-menu";
 import { siteConfig } from "@/constants/site";
+import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -22,8 +13,12 @@ const navLinks = [
   { label: "Tentang Kami", href: "/#tentang" },
 ];
 
-export function Navbar() {
-  const [open, setOpen] = useState(false);
+export async function Navbar() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const accountHref = user ? "/profile" : "/login";
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
@@ -53,8 +48,8 @@ export function Navbar() {
             <Search />
           </Link>
           <Link
-            href="/#tentang"
-            aria-label="Akun"
+            href={accountHref}
+            aria-label={user ? "Profil saya" : "Masuk ke akun"}
             className={cn(buttonVariants({ variant: "ghost", size: "icon" }))}
           >
             <User />
@@ -70,36 +65,7 @@ export function Navbar() {
             </Badge>
           </Link>
 
-          <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger
-              render={
-                <Button variant="ghost" size="icon" aria-label="Buka menu" className="md:hidden" />
-              }
-            >
-              <Menu />
-            </SheetTrigger>
-            <SheetContent side="right">
-              <SheetHeader>
-                <SheetTitle>{siteConfig.name}</SheetTitle>
-              </SheetHeader>
-              <nav className="flex flex-col gap-1 p-4" aria-label="Navigasi seluler">
-                {navLinks.map((link) => (
-                  <SheetClose
-                    key={link.href + link.label}
-                    render={
-                      <Link
-                        href={link.href}
-                        onClick={() => setOpen(false)}
-                        className="rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
-                      />
-                    }
-                  >
-                    {link.label}
-                  </SheetClose>
-                ))}
-              </nav>
-            </SheetContent>
-          </Sheet>
+          <MobileMenu links={navLinks} />
         </div>
       </div>
     </header>
