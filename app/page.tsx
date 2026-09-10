@@ -9,9 +9,18 @@ import {
 } from "@/components/ui/card";
 import { ProductCard } from "@/components/products/product-card";
 import { homepageCategories, homepageProducts } from "@/constants/homepage";
+import { getCategories, getFeaturedProducts } from "@/features/products/services";
 import { cn } from "@/lib/utils";
 
-export default function Home() {
+export default async function Home() {
+  const [categories, featuredProducts] = await Promise.all([
+    getCategories().catch(() => homepageCategories),
+    getFeaturedProducts().catch(() => homepageProducts),
+  ]);
+
+  const displayCategories = categories.length > 0 ? categories : homepageCategories;
+  const displayProducts = featuredProducts.length > 0 ? featuredProducts : homepageProducts;
+
   return (
     <main className="bg-background text-foreground">
       <section className="border-b border-border">
@@ -26,7 +35,7 @@ export default function Home() {
               nyaman dipakai untuk acara maupun aktivitas harian.
             </p>
             <div className="mt-6 flex flex-wrap items-center gap-3">
-              <Link href="#koleksi" className={cn(buttonVariants({ size: "lg" }))}>
+              <Link href="/koleksi" className={cn(buttonVariants({ size: "lg" }))}>
                 Lihat Koleksi
                 <ArrowRight />
               </Link>
@@ -73,16 +82,18 @@ export default function Home() {
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {homepageCategories.map((category) => (
-            <Card key={category.id} className="p-6">
-              <span className="inline-flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Shirt className="size-5" aria-hidden="true" />
-              </span>
-              <CardTitle className="mt-4">{category.name}</CardTitle>
-              <CardDescription className="mt-1">
-                {category.description}
-              </CardDescription>
-            </Card>
+          {displayCategories.map((category) => (
+            <Link key={category.id} href={`/koleksi?kategori=${category.slug}`}>
+              <Card className="h-full p-6 transition-colors hover:border-primary/40">
+                <span className="inline-flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Shirt className="size-5" aria-hidden="true" />
+                </span>
+                <CardTitle className="mt-4">{category.name}</CardTitle>
+                <CardDescription className="mt-1">
+                  {category.description}
+                </CardDescription>
+              </Card>
+            </Link>
           ))}
         </div>
       </section>
@@ -98,14 +109,20 @@ export default function Home() {
                 Koleksi Terbaru
               </h2>
               <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-                Data contoh statis untuk fondasi tampilan. Katalog dinamis akan
-                hadir pada milestone berikutnya.
+                Produk unggulan dari katalog resmi Batik Arunika.
               </p>
             </div>
+            <Link
+              href="/koleksi"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+            >
+              Lihat Semua
+              <ArrowRight />
+            </Link>
           </div>
 
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {homepageProducts.map((product) => (
+            {displayProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
