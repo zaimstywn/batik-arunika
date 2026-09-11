@@ -5,6 +5,7 @@ import { ArrowLeft, CheckCircle2, PackageX } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { AddToCart } from "@/components/cart/add-to-cart";
 import { WishlistButton } from "@/features/wishlist/components/wishlist-button";
+import { ProductReviewsSection } from "@/features/reviews/components/product-reviews-section";
 import { getProductBySlug } from "@/features/products/services";
 import { isProductWishlisted } from "@/features/wishlist/services";
 import { formatIDR } from "@/lib/format";
@@ -127,6 +128,8 @@ export default async function ProductDetailPage({ params }: Props) {
             </div>
           </div>
         </div>
+
+        <ProductReviewsSection productId={product.id} />
       </div>
     </main>
   );

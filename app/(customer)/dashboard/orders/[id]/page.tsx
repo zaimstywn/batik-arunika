@@ -15,6 +15,7 @@ import {
   formatShortId,
 } from "@/components/orders/order-status-badge";
 import { getCustomerOrderDetail } from "@/features/orders/services";
+import { OrderItemsClient } from "@/features/orders/components/order-items-client";
 import { formatIDR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -125,24 +126,11 @@ export default async function OrderDetailPage({ params }: Props) {
               Tidak ada produk dalam pesanan ini.
             </p>
           ) : (
-            <div className="divide-y divide-border rounded-lg border border-border">
-              {order.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between p-4"
-                >
-                  <div className="flex-1">
-                    <p className="font-medium">{item.product_name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {item.quantity}x {formatIDR(item.price_at_time)}
-                    </p>
-                  </div>
-                  <p className="font-semibold">
-                    {formatIDR(item.price_at_time * item.quantity)}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <OrderItemsClient
+              items={order.items}
+              orderId={order.id}
+              orderStatus={order.order_status}
+            />
           )}
         </CardContent>
       </Card>
