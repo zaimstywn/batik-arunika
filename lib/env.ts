@@ -33,6 +33,7 @@ export function getPublicEnv() {
 }
 
 const serverIntegrationsSchema = z.object({
+  ADMIN_EMAIL: z.string().email().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
   MIDTRANS_SERVER_KEY: z.string().min(1).optional(),
   MIDTRANS_IS_PRODUCTION: z.enum(["true", "false"]).default("false").optional(),
@@ -44,6 +45,7 @@ export type ServerIntegrationsEnv = z.infer<typeof serverIntegrationsSchema>;
 
 export function getServerIntegrationsEnv(): ServerIntegrationsEnv {
   const parsed = serverIntegrationsSchema.safeParse({
+    ADMIN_EMAIL: process.env.ADMIN_EMAIL || undefined,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || undefined,
     MIDTRANS_SERVER_KEY: process.env.MIDTRANS_SERVER_KEY || undefined,
     MIDTRANS_IS_PRODUCTION: process.env.MIDTRANS_IS_PRODUCTION || undefined,

@@ -1,8 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { getPublicEnv } from "@/lib/env";
+import { getPublicEnv, getServerIntegrationsEnv } from "@/lib/env";
 
 const PROTECTED_PREFIXES = ["/profile"];
+const ADMIN_PREFIXES = ["/admin"];
 const AUTH_ROUTES = ["/login", "/register"];
 
 export async function updateSession(request: NextRequest) {
@@ -43,9 +44,34 @@ export async function updateSession(request: NextRequest) {
   const isProtected = PROTECTED_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
   );
+  const isAdminRoute = ADMIN_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
   const isAuthRoute = AUTH_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`)
   );
+
+  if (isAdminRoute) {
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+
+    const { ADMIN_EMAIL } = getServerIntegrationsEnv();
+    const isAdmin =
+      !!ADMIN_EMAIL &&
+      !!user.email &&
+      user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+
+    if (!isAdmin) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      return NextResponse.redirect(url);
+    }
+
+    return supabaseResponse;
+  }
 
   if (!user && isProtected) {
     const url = request.nextUrl.clone();
