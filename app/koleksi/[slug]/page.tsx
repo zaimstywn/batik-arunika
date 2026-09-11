@@ -4,9 +4,12 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, CheckCircle2, PackageX } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { AddToCart } from "@/components/cart/add-to-cart";
+import { WishlistButton } from "@/features/wishlist/components/wishlist-button";
 import { getProductBySlug } from "@/features/products/services";
+import { isProductWishlisted } from "@/features/wishlist/services";
 import { formatIDR } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/server";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -37,6 +40,15 @@ export default async function ProductDetailPage({ params }: Props) {
   }
 
   const isOutOfStock = product.stock <= 0;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const isWishlisted = user
+    ? await isProductWishlisted(product.id)
+    : false;
 
   return (
     <main className="bg-background">
@@ -97,7 +109,18 @@ export default async function ProductDetailPage({ params }: Props) {
             </div>
 
             <div className="space-y-4 pt-6 border-t border-border">
-              <AddToCart product={product} />
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <AddToCart product={product} />
+                </div>
+                <WishlistButton
+                  productId={product.id}
+                  isWishlisted={isWishlisted}
+                  isAuthenticated={!!user}
+                  size="default"
+                  variant="outline"
+                />
+              </div>
               <p className="text-center text-xs text-muted-foreground">
                 Pembayaran aman melalui Xendit • Pengiriman via Biteship
               </p>

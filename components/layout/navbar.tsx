@@ -18,7 +18,7 @@ export async function Navbar() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const accountHref = user ? "/profile" : "/login";
+  const accountHref = user ? "/dashboard" : "/login";
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">

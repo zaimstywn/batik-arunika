@@ -11,12 +11,19 @@ import {
 } from "@/components/ui/card";
 import { formatIDR } from "@/lib/format";
 import type { Product } from "@/types";
+import { WishlistButton } from "@/features/wishlist/components/wishlist-button";
 
 type ProductCardProps = {
   product: Product;
+  isWishlisted?: boolean;
+  isAuthenticated?: boolean;
 };
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({
+  product,
+  isWishlisted = false,
+  isAuthenticated = false,
+}: ProductCardProps) {
   const isOutOfStock = product.stock <= 0;
 
   return (
@@ -36,6 +43,15 @@ export function ProductCard({ product }: ProductCardProps) {
                 Habis
               </Badge>
             ) : null}
+            <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
+              <WishlistButton
+                productId={product.id}
+                isWishlisted={isWishlisted}
+                isAuthenticated={isAuthenticated}
+                variant="ghost"
+                size="icon"
+              />
+            </div>
             <p className="px-6 text-center text-sm font-medium text-muted-foreground group-hover:text-foreground">
               {product.name}
             </p>

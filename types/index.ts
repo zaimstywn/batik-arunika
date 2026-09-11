@@ -37,6 +37,7 @@ export type Address = {
   city: string;
   province: string;
   postal_code: string;
+  is_default?: boolean;
   created_at: string;
 };
 
