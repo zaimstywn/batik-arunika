@@ -78,33 +78,43 @@ Status: COMPLETED.
 
 ## Milestone 12 — Customer Features & Product Reviews (Phase 5: Post-Launch Enhancements)
 
-Status: COMPLETED.
+Status: COMPLETED ✓
 
 **Core Features:**
-- ✓ Customer Dashboard with metrics and recent orders overview
-- ✓ Order History with full order detail pages
-- ✓ Wishlist functionality with heart icon toggle on product cards
-- ✓ Address Book with full CRUD operations and default address management
-- ✓ Account Settings with profile update and password change
-- ✓ Product Reviews and Star Ratings with verified order review submission
-- ✓ Newsletter subscription with email validation and marketing list
-- ✓ WhatsApp Customer Support Chat widget
+- [x] Customer Dashboard with metrics and recent orders overview
+- [x] Order History with full order detail pages
+- [x] Wishlist functionality with heart icon toggle on product cards
+- [x] Address Book with full CRUD operations and default address management
+- [x] Account Settings with profile update and password change
+- [x] Product Reviews and Star Ratings with verified order review submission
+- [x] Newsletter subscription with email validation and marketing list
+- [x] Customer Support Chat (WhatsApp integration)
+- [x] Email notification framework (modular, dev-mode logging)
+- [x] Loyalty Program with points, tiers (Bronze/Silver/Gold/Platinum), and transaction history
 
 **Technical Implementation:**
 - Customer dashboard layout with sidebar navigation
-- Database migrations for addresses (`is_default` flag) and wishlist table
+- Database migrations for addresses, wishlist, reviews, newsletter, and loyalty
 - Row Level Security (RLS) policies for user data isolation
 - Supabase Auth integration for profile and password updates
-- Reusable WishlistButton component integrated across product pages
+- Reusable components (WishlistButton, ReviewModal, LoyaltyCard, etc.)
 - Form validation and error handling with toast notifications
 - Responsive UI with loading states
+- Email notification helper functions (future SendGrid/Resend integration)
 
 **Routes:**
-- `/dashboard` - Customer dashboard overview
+- `/dashboard` - Customer dashboard overview with loyalty card
 - `/dashboard/orders` - Order history list
-- `/dashboard/orders/[id]` - Order detail with security checks
+- `/dashboard/orders/[id]` - Order detail with review submission
 - `/dashboard/wishlist` - Wishlist grid with product cards
 - `/dashboard/addresses` - Address book management
 - `/dashboard/settings` - Profile and password settings
+- All routes protected by authentication
 
-**Last Updated**: September 11, 2026
+**Loyalty Tier Benefits:**
+- Bronze (0+ points): 1 point per Rp 1,000
+- Silver (500+ points): 1.1 points per Rp 1,000 + 5% discount
+- Gold (2,000+ points): 1.2 points per Rp 1,000 + 10% discount
+- Platinum (5,000+ points): 1.5 points per Rp 1,000 + 15% discount
+
+**Last Updated**: September 11, 2026 — 17:03 UTC
