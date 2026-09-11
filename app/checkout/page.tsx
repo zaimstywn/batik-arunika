@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { LoadingState } from "@/components/common/loading-state";
 import { createOrderAction } from "@/features/checkout/actions";
 import { addressSchema, type AddressInput } from "@/features/checkout/schemas";
+import { loadSnapScript } from "@/features/payment/snap";
 import { getRatesForAddress } from "@/features/shipping/actions";
 import { STORE_ORIGIN_LABEL, type ShippingRate } from "@/features/shipping/biteship";
 import { useCartStore, useCartSubtotal } from "@/features/cart/store";
@@ -131,14 +132,49 @@ export default function CheckoutPage() {
 
     const result = await createOrderAction(payload);
 
-    if (!result.success) {
+    if (!result.success || !result.orderId) {
       toast.error(result.message ?? "Gagal memproses pesanan.");
       return;
     }
 
+    const orderId = result.orderId;
+    const paymentToken = result.paymentToken;
+
     clearCart();
-    toast.success("Pesanan berhasil dibuat!");
-    router.replace(`/checkout/success?orderId=${result.orderId ?? ""}`);
+
+    if (!paymentToken || paymentToken.startsWith("mock-snap-token")) {
+      toast.success("Pesanan berhasil dibuat!");
+      router.replace(`/checkout/success?orderId=${orderId}`);
+      return;
+    }
+
+    const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
+    const loaded = await loadSnapScript(clientKey);
+
+    if (!loaded || !window.snap) {
+      toast.success("Pesanan berhasil dibuat, namun widget pembayaran gagal dimuat.");
+      router.replace(`/checkout/success?orderId=${orderId}`);
+      return;
+    }
+
+    window.snap.pay(paymentToken, {
+      onSuccess: () => {
+        toast.success("Pembayaran berhasil!");
+        router.replace(`/checkout/success?orderId=${orderId}&status=success`);
+      },
+      onPending: () => {
+        toast.info("Menunggu pembayaran...");
+        router.replace(`/checkout/success?orderId=${orderId}&status=pending`);
+      },
+      onError: () => {
+        toast.error("Pembayaran gagal.");
+        router.replace(`/checkout/success?orderId=${orderId}&status=error`);
+      },
+      onClose: () => {
+        toast.info("Jendela pembayaran ditutup.");
+        router.replace(`/checkout/success?orderId=${orderId}&status=closed`);
+      },
+    });
   };
 
   return (

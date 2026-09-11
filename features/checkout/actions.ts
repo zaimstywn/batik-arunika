@@ -2,12 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 import { checkoutPayloadSchema } from "@/features/checkout/schemas";
+import { createMidtransTransaction } from "@/features/payment/midtrans";
 import { createClient } from "@/lib/supabase/server";
 
 export type CheckoutActionResult = {
   success: boolean;
   message?: string;
   orderId?: string;
+  paymentToken?: string;
+  redirectUrl?: string;
 };
 
 export async function createOrderAction(values: unknown): Promise<CheckoutActionResult> {
@@ -118,10 +121,46 @@ export async function createOrderAction(values: unknown): Promise<CheckoutAction
     return { success: false, message: "Gagal menyimpan rincian pesanan." };
   }
 
-  revalidatePath("/", "layout");
+  // 6. Create Midtrans Snap transaction (server-side, gross from DB)
+  const email =
+    user?.email ??
+    (typeof user?.user_metadata?.email === "string"
+      ? user.user_metadata.email
+      : undefined);
 
-  return {
-    success: true,
-    orderId: orderRecord.id,
-  };
+  try {
+    const snap = await createMidtransTransaction(
+      orderRecord.id,
+      grandTotal,
+      {
+        firstName: address.recipientName,
+        email,
+        phone: address.phone,
+      },
+      verifiedOrderItems.map((item) => ({
+        id: item.product_id,
+        price: item.price_at_time,
+        quantity: item.quantity,
+        name: item.product_name,
+      }))
+    );
+
+    revalidatePath("/", "layout");
+
+    return {
+      success: true,
+      orderId: orderRecord.id,
+      paymentToken: snap.token,
+      redirectUrl: snap.redirectUrl,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? `Pesanan tersimpan, tetapi pembayaran gagal dibuat: ${error.message}`
+          : "Pesanan tersimpan, tetapi pembayaran gagal dibuat.",
+      orderId: orderRecord.id,
+    };
+  }
 }
