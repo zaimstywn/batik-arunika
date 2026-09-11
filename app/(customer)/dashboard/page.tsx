@@ -15,6 +15,10 @@ import {
   formatShortId,
 } from "@/components/orders/order-status-badge";
 import { getCustomerOrders } from "@/features/orders/services";
+import { getCustomerLoyalty, getLoyaltyHistory } from "@/features/loyalty/services";
+import { LoyaltyCard } from "@/features/loyalty/components/loyalty-card";
+import { LoyaltyHistory } from "@/features/loyalty/components/loyalty-history";
+import { createClient } from "@/lib/supabase/server";
 import { formatIDR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -24,11 +28,21 @@ export const metadata = {
 };
 
 export default async function DashboardPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const orders = await getCustomerOrders().catch(() => []);
   const recentOrders = orders.slice(0, 3);
 
+  const loyalty = user ? await getCustomerLoyalty(user.id) : null;
+  const loyaltyHistory = user ? await getLoyaltyHistory(user.id, 5) : [];
+
   return (
     <div className="space-y-6">
+      <LoyaltyCard loyalty={loyalty} />
+
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -135,6 +149,10 @@ export default async function DashboardPage() {
           )}
         </CardContent>
       </Card>
+
+      {loyaltyHistory.length > 0 && (
+        <LoyaltyHistory history={loyaltyHistory} />
+      )}
     </div>
   );
 }
