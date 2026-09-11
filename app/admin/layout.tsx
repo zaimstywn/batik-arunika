@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { LayoutDashboard, Package, ShoppingBag } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, Tags } from "lucide-react";
 
 const adminLinks = [
   { label: "Ringkasan", href: "/admin", icon: LayoutDashboard },
   { label: "Pesanan", href: "/admin/orders", icon: ShoppingBag },
   { label: "Produk", href: "/admin/products", icon: Package },
+  { label: "Kategori", href: "/admin/categories", icon: Tags },
 ];
 
 export default function AdminLayout({

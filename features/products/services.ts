@@ -109,6 +109,23 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   return mapProduct(data as ProductRow);
 }
 
+export async function getAllProductsForAdmin(): Promise<Product[]> {
+  const { createServiceClient } = await import("@/lib/supabase/service");
+  const supabase = createServiceClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select(
+      "id, name, slug, description, price, stock, category_id, image_url, is_featured, categories(name)"
+    )
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(`Gagal memuat produk admin: ${error.message}`);
+  }
+
+  return ((data ?? []) as ProductRow[]).map(mapProduct);
+}
+
 export async function getFeaturedProducts(limit = 4): Promise<Product[]> {
   const supabase = await createClient();
   const { data, error } = await supabase

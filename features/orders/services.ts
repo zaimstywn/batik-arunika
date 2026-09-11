@@ -94,6 +94,74 @@ export type AdminOrderRow = Order & {
   customer_email: string | null;
 };
 
+export type AdminDashboardStats = {
+  totalOrders: number;
+  totalProducts: number;
+  totalRevenue: number;
+  pendingOrders: number;
+  recentOrders: AdminOrderRow[];
+};
+
+export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
+  const supabase = createServiceClient();
+
+  const { data: orders, error: ordersError } = await supabase
+    .from("orders")
+    .select(
+      "id, user_id, address_id, subtotal, shipping_cost, grand_total, payment_status, order_status, created_at"
+    )
+    .order("created_at", { ascending: false });
+
+  if (ordersError) {
+    throw new Error(`Gagal memuat statistik admin: ${ordersError.message}`);
+  }
+
+  const { count: productCount, error: productError } = await supabase
+    .from("products")
+    .select("id", { count: "exact", head: true });
+
+  if (productError) {
+    throw new Error(`Gagal menghitung produk: ${productError.message}`);
+  }
+
+  const allOrders = (orders ?? []) as Order[];
+
+  const totalRevenue = allOrders
+    .filter(
+      (o) =>
+        o.payment_status === "paid" ||
+        o.order_status === "shipped" ||
+        o.order_status === "completed"
+    )
+    .reduce((sum, o) => sum + o.grand_total, 0);
+
+  const pendingOrders = allOrders.filter(
+    (o) => o.order_status === "pending_payment"
+  ).length;
+
+  const recentOrders = allOrders.slice(0, 5);
+  const userIds = [...new Set(recentOrders.map((o) => o.user_id).filter(Boolean))] as string[];
+
+  const emailMap = new Map<string, string>();
+  if (userIds.length > 0) {
+    const { data: users } = await supabase.auth.admin.listUsers();
+    for (const u of users?.users ?? []) {
+      if (u.email) emailMap.set(u.id, u.email);
+    }
+  }
+
+  return {
+    totalOrders: allOrders.length,
+    totalProducts: productCount ?? 0,
+    totalRevenue,
+    pendingOrders,
+    recentOrders: recentOrders.map((order) => ({
+      ...order,
+      customer_email: order.user_id ? emailMap.get(order.user_id) ?? null : null,
+    })),
+  };
+}
+
 export async function getAllOrdersForAdmin(): Promise<AdminOrderRow[]> {
   const supabase = createServiceClient();
   const { data, error } = await supabase
