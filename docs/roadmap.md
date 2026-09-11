@@ -87,6 +87,8 @@ Status: COMPLETED.
 - ✓ Address Book with full CRUD operations and default address management
 - ✓ Account Settings with profile update and password change
 - ✓ Product Reviews and Star Ratings with verified order review submission
+- ✓ Newsletter subscription with email validation and marketing list
+- ✓ WhatsApp Customer Support Chat widget
 
 **Technical Implementation:**
 - Customer dashboard layout with sidebar navigation
