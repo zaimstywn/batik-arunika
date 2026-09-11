@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { siteConfig } from "@/constants/site";
+import { NewsletterSubscription } from "@/features/newsletter/components/newsletter-subscription";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -16,6 +17,13 @@ export function Footer() {
             <p className="mt-3 text-xs text-muted-foreground italic">
               &ldquo;Keindahan Batik Indonesia, dalam Sentuhan Modern.&rdquo;
             </p>
+            
+            <div className="mt-6">
+              <p className="text-sm font-semibold tracking-wide text-foreground mb-3">
+                Daftar Newsletter
+              </p>
+              <NewsletterSubscription />
+            </div>
           </div>
 
           <div>
