@@ -1,10 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRight, Loader2, MapPin, Package, ShieldCheck } from "lucide-react";
+import { ArrowRight, Loader2, MapPin, Package, ShieldCheck, Truck } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,10 +12,11 @@ import { Input } from "@/components/ui/input";
 import { LoadingState } from "@/components/common/loading-state";
 import { createOrderAction } from "@/features/checkout/actions";
 import { addressSchema, type AddressInput } from "@/features/checkout/schemas";
+import { getRatesForAddress } from "@/features/shipping/actions";
+import { STORE_ORIGIN_LABEL, type ShippingRate } from "@/features/shipping/biteship";
 import { useCartStore, useCartSubtotal } from "@/features/cart/store";
 import { formatIDR } from "@/lib/format";
-
-const FLAT_SHIPPING_COST = 20000;
+import { cn } from "@/lib/utils";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -28,9 +29,15 @@ export default function CheckoutPage() {
     () => false
   );
 
+  const [rates, setRates] = useState<ShippingRate[]>([]);
+  const [ratesLoading, setRatesLoading] = useState(false);
+  const [ratesError, setRatesError] = useState<string | null>(null);
+  const [selectedRateId, setSelectedRateId] = useState<string | null>(null);
+
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<AddressInput>({
     resolver: zodResolver(addressSchema),
@@ -44,11 +51,54 @@ export default function CheckoutPage() {
     },
   });
 
+  const postalCode = watch("postalCode");
+
   useEffect(() => {
     if (isMounted && items.length === 0) {
       router.replace("/keranjang");
     }
   }, [isMounted, items.length, router]);
+
+  useEffect(() => {
+    if (!isMounted || items.length === 0) return;
+    const code = (postalCode ?? "").trim();
+    if (code.length < 5) {
+      setRates([]);
+      setSelectedRateId(null);
+      setRatesError(null);
+      return;
+    }
+
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      const load = async () => {
+        setRatesLoading(true);
+        setRatesError(null);
+        const result = await getRatesForAddress({
+          postalCode: code,
+          items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+        });
+        if (cancelled) return;
+        setRatesLoading(false);
+        if (!result.success || !result.rates || result.rates.length === 0) {
+          setRates([]);
+          setSelectedRateId(null);
+          setRatesError(result.message ?? "Tarif pengiriman tidak tersedia.");
+          return;
+        }
+        setRates(result.rates);
+        setSelectedRateId((prev) =>
+          result.rates?.some((r) => r.id === prev) ? prev : (result.rates?.[0]?.id ?? null)
+        );
+      };
+      void load();
+    }, 600);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [isMounted, postalCode, items]);
 
   if (!isMounted || items.length === 0) {
     return (
@@ -60,16 +110,23 @@ export default function CheckoutPage() {
     );
   }
 
-  const grandTotal = subtotal + FLAT_SHIPPING_COST;
+  const selectedRate = rates.find((r) => r.id === selectedRateId) ?? null;
+  const shippingCost = selectedRate?.price ?? 0;
+  const grandTotal = subtotal + shippingCost;
 
   const onSubmit = async (addressValues: AddressInput) => {
+    if (!selectedRate) {
+      toast.error("Pilih layanan pengiriman terlebih dahulu.");
+      return;
+    }
+
     const payload = {
       address: addressValues,
       items: items.map((i) => ({
         productId: i.productId,
         quantity: i.quantity,
       })),
-      shippingCost: FLAT_SHIPPING_COST,
+      shippingCost: selectedRate.price,
     };
 
     const result = await createOrderAction(payload);
@@ -204,20 +261,69 @@ export default function CheckoutPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <Package className="size-4 text-primary" aria-hidden="true" />
-                  Metode Pengiriman (Biteship)
+                  <Truck className="size-4 text-primary" aria-hidden="true" />
+                  Metode Pengiriman
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between rounded-lg border border-border p-4 bg-muted/30">
-                  <div>
-                    <p className="text-sm font-semibold">Reguler (Biteship Mock)</p>
-                    <p className="text-xs text-muted-foreground">Estimasi tiba 2–3 hari kerja</p>
+                <p className="mb-3 text-xs text-muted-foreground">
+                  Dikirim dari {STORE_ORIGIN_LABEL}. Masukkan kode pos untuk melihat tarif.
+                </p>
+                {ratesLoading ? (
+                  <LoadingState message="Menghitung ongkos kirim..." className="py-6" />
+                ) : rates.length === 0 ? (
+                  <div className="flex items-center gap-3 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+                    <Package className="size-5 shrink-0" aria-hidden="true" />
+                    <span>
+                      {ratesError ??
+                        "Tarif pengiriman akan muncul setelah kode pos terisi."}
+                    </span>
                   </div>
-                  <span className="text-sm font-semibold text-foreground">
-                    {formatIDR(FLAT_SHIPPING_COST)}
-                  </span>
-                </div>
+                ) : (
+                  <div role="radiogroup" aria-label="Pilihan kurir" className="space-y-2">
+                    {rates.map((rate) => {
+                      const selected = rate.id === selectedRateId;
+                      return (
+                        <label
+                          key={rate.id}
+                          className={cn(
+                            "flex cursor-pointer items-center justify-between gap-3 rounded-lg border p-4 transition-colors",
+                            selected
+                              ? "border-primary bg-primary/5"
+                              : "border-border hover:border-primary/40"
+                          )}
+                        >
+                          <span className="flex items-center gap-3">
+                            <input
+                              type="radio"
+                              name="shipping-rate"
+                              value={rate.id}
+                              checked={selected}
+                              onChange={() => setSelectedRateId(rate.id)}
+                              className="size-4 accent-[#8B5E3C]"
+                            />
+                            <span>
+                              <span className="block text-sm font-semibold">
+                                {rate.courier} {rate.service}
+                                {rate.isMock ? (
+                                  <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                                    Mock
+                                  </span>
+                                ) : null}
+                              </span>
+                              <span className="block text-xs text-muted-foreground">
+                                {rate.description} • {rate.duration}
+                              </span>
+                            </span>
+                          </span>
+                          <span className="text-sm font-semibold text-foreground">
+                            {formatIDR(rate.price)}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -248,7 +354,9 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex justify-between text-muted-foreground">
                     <span>Biaya Pengiriman</span>
-                    <span className="font-semibold text-foreground">{formatIDR(FLAT_SHIPPING_COST)}</span>
+                    <span className="font-semibold text-foreground">
+                      {selectedRate ? formatIDR(shippingCost) : "—"}
+                    </span>
                   </div>
                   <div className="flex justify-between border-t border-border pt-2 text-base font-bold text-foreground">
                     <span>Total Tagihan</span>
@@ -256,7 +364,12 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                <Button type="submit" size="lg" className="w-full gap-2" disabled={isSubmitting}>
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="w-full gap-2"
+                  disabled={isSubmitting || !selectedRate}
+                >
                   {isSubmitting ? (
                     <>
                       <Loader2 className="animate-spin" aria-hidden="true" />
