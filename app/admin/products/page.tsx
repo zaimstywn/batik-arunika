@@ -9,8 +9,10 @@ import {
 } from "@/components/ui/card";
 import { EmptyState } from "@/components/common/empty-state";
 import { ProductCreateForm } from "@/app/admin/products/product-form";
-import { getCategories } from "@/features/products/services";
-import { getAllProductsForAdmin } from "@/features/products/services";
+import {
+  getAllProductsForAdmin,
+  getCategories,
+} from "@/features/products/services";
 import { formatIDR } from "@/lib/format";
 
 export const metadata: Metadata = {

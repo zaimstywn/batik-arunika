@@ -2,172 +2,151 @@
 
 Modern single-vendor e-commerce platform for an Indonesian batik brand.
 
-Batik Arunika is the official online store of one batik brand. It is not a
-marketplace and has no seller, vendor, commission, or multi-store concept.
+Batik Arunika is the official online store of one batik brand. It is a single-vendor application designed to provide a premium, warm, elegant, and minimal shopping experience for authentic Indonesian batik products.
 
-## Project Overview
+## Project Status
 
-- Single-vendor official brand store.
-- Roles: Guest, Customer, Admin.
-- Tagline: "Keindahan Batik Indonesia, dalam Sentuhan Modern."
-- Current focus: clean foundation before business features.
+**COMPLETE — MVP RELEASE**
 
-## Current Status
+All core milestones (1 through 11) have been implemented, tested, and verified.
 
-Milestone 1 — Foundation.
+## Completed Features
 
-Implemented:
-
-- Next.js App Router scaffold.
-- TypeScript strict base.
-- Tailwind CSS v4 and shadcn/ui Base Nova base styling.
-- Brand design tokens in `app/globals.css`.
-- Root layout with `lang="id"` and single-vendor metadata.
-- Minimal foundation placeholder homepage.
-- Supabase browser and server clients.
-- Session-refresh proxy foundation.
-- Zod-based environment validation.
-- `.env.example` with public and server-only placeholders.
-
-Not implemented yet:
-
-- customer authentication UI and protected flows
-- product catalog, categories, search, filtering, sorting
-- cart
-- addresses
-- checkout
-- Biteship shipping integration
-- Midtrans Sandbox payment integration
-- customer order history
-- admin dashboard and management pages
-- database migrations, tables, storage buckets, and Row Level Security
-- product reviews and wishlist behavior
-
-The folder skeleton for `components/*`, `features/*`, and `services/` exists,
-but most of those areas are intentionally empty.
-
-## Planned Core Features
-
-Locked future scope, not yet implemented:
-
-- product catalog with search, filter, and sort
-- customer authentication and profile
-- address management
-- cart with server-validated stock and pricing
-- checkout with address, shipping, promotion, and totals
-- Biteship shipping rates and service selection
-- Midtrans Sandbox payment creation and webhook synchronization
-- separate payment and fulfillment statuses
-- customer order history and detail
-- admin product, category, banner, promotion, customer, and order management
-- basic sales overview and low-stock visibility
-
-Optional later if timeline allows:
-
-- purchased-product reviews
-- wishlist
-
-Explicitly out of scope:
-
-- marketplace and multi-vendor behavior
-- seller dashboard and commissions
-- affiliate, auction, subscriptions, loyalty points
-- multi-currency and multi-language
-- ERP, accounting, warehouse, supplier, and logistics management
-- live chat, live shopping, social commerce, AI recommendations
+- **Public Storefront & Branding**: Modern responsive layout, hero banner, featured categories, and brand story using custom design tokens (`#8B5E3C`, `#D4A373`, `#FAF7F2`, `#A63D40`, `#2D2D2D`).
+- **Product Catalog**: Dynamic catalog listing with category filtering and search, product detail pages with stock tracking and 404 handling.
+- **Authentication & Profile**: Supabase Auth (Email/Password) with server-side session persistence, route protection via proxy, customer profile page, and order history.
+- **Shopping Cart**: Client-side state managed via Zustand with `persist` middleware, quantity controls with stock clamping, and cart badge.
+- **Checkout**: Address form with Zod validation, order summary, and server-side price/total recalculation.
+- **Shipping Integration**: Dynamic shipping rates powered by Biteship API (originating from Tembalang, Semarang) with fallback mock rates for unblocked development.
+- **Payment Gateway**: Xendit Invoice integration with automatic redirection, graceful fallback mode, and a secure webhook route (`/api/webhooks/xendit`) enforcing `x-callback-token` verification via Supabase service-role client.
+- **Order Management**: Customer order history & detail views (`/profile/pesanan/[id]`), and an Admin order management portal (`/admin/orders`) with fulfillment status updating (`pending_payment` -> `processing` -> `shipped` -> `completed` -> `cancelled`).
+- **Admin Dashboard & Catalog Management**: Overview dashboard with real revenue, order, and product metrics, recent orders feed, plus category and product CRUD forms secured by `ADMIN_EMAIL` verification.
 
 ## Tech Stack
 
-Actual installed stack:
+- **Framework**: Next.js 16.2.10 (App Router, Server Components by default)
+- **Language**: TypeScript 5 (Strict Mode)
+- **Styling**: Tailwind CSS v4, shadcn/ui Base Nova
+- **Database & Auth**: Supabase PostgreSQL, Supabase Auth (`@supabase/ssr`)
+- **State Management**: Zustand 5.0.14 (persist middleware)
+- **Form & Validation**: React Hook Form 7.82.0, Zod 4.4.3
+- **Payment Gateway**: Xendit Invoice API
+- **Logistics**: Biteship API
+- **UI Components & Icons**: Lucide React 1.25.0, Sonner 2.0.7
 
-- Next.js 16.2.10
-- React 19.2.4
-- TypeScript
-- Tailwind CSS v4
-- shadcn/ui Base Nova
-- Supabase with `@supabase/ssr` 0.12.3 and `@supabase/supabase-js` 2.110.7
-- Zod 4.4.3
-- React Hook Form 7.82.0
-- Zustand 5.0.14
-- Sonner 2.0.7
-- Lucide React 1.25.0
-- Vercel for intended deployment
-- Midtrans Sandbox for planned payments
-- Biteship for planned shipping
+## Local Development Setup
 
-Payment and shipping integrations are planned only. No transaction, rate, or
-webhook implementation exists in this milestone.
+### 1. Prerequisites
 
-## Local Setup
+- Node.js 20+ installed
+- A Supabase project (for live Auth and PostgreSQL database)
 
-1. Install dependencies:
+### 2. Installation
 
 ```bash
+git clone https://github.com/anomalyco/batik-arunika.git
+cd batik-arunika
 npm install
 ```
 
-2. Copy environment template:
+### 3. Environment Configuration
+
+Copy `.env.example` to `.env.local`:
 
 ```bash
 cp .env.example .env.local
 ```
 
-3. Fill local Supabase values in `.env.local`.
+Fill in the required values in `.env.local`:
 
-Midtrans and Biteship values may remain empty during Milestone 1 because those
-services are not called yet.
+```env
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://your-supabase-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 
-4. Run development server:
+# Application
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_APP_NAME="Batik Arunika"
 
-```bash
-npm run dev
+# Admin Access
+ADMIN_EMAIL=admin@batikarunika.com
+
+# Xendit Payment Gateway
+XENDIT_SECRET_KEY=xnd_development_...
+XENDIT_WEBHOOK_TOKEN=your-xendit-webhook-token
+
+# Biteship Logistics
+BITESHIP_API_KEY=biteship_live_...
+BITESHIP_BASE_URL=https://api.biteship.com
 ```
 
-## Development Commands
+> **Note**: If `XENDIT_SECRET_KEY` or `BITESHIP_API_KEY` are not provided, the application will gracefully fall back to mock data during local development.
+
+### 4. Database Setup
+
+Apply the SQL migrations located in `supabase/migrations/` to your Supabase PostgreSQL instance:
+
+1. `20260910090000_create_catalog_schema.sql` (Creates `categories`, `products`, RLS policies, and seed data)
+2. `20260910120000_create_orders_schema.sql` (Creates `addresses`, `orders`, `order_items`, and RLS policies)
+
+### 5. Running the Application
 
 ```bash
+# Start development server
 npm run dev
+
+# Run ESLint
 npm run lint
+
+# Run TypeScript type check
 npm run typecheck
+
+# Build for production
 npm run build
 ```
 
-## Environment Variables
-
-Public browser-safe variables:
-
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `NEXT_PUBLIC_APP_URL`
-- `NEXT_PUBLIC_APP_NAME`
-
-Server-only secrets:
-
-- `MIDTRANS_SERVER_KEY`
-- `MIDTRANS_CLIENT_KEY`
-- `MIDTRANS_IS_PRODUCTION`
-- `BITESHIP_API_KEY`
-- `BITESHIP_BASE_URL`
-
-Do not prefix server secrets with `NEXT_PUBLIC_`.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Project Structure
 
-Current structure:
-
 ```text
 app/
-  layout.tsx
-  page.tsx
-  globals.css
-components/
+  (auth)/
+    login/page.tsx
+    register/page.tsx
   admin/
+    categories/
+    orders/
+    products/
+    layout.tsx
+    page.tsx
+  api/
+    webhooks/
+      xendit/route.ts
   checkout/
+    success/page.tsx
+    page.tsx
+  keranjang/page.tsx
+  koleksi/
+    [slug]/page.tsx
+    page.tsx
+  profile/
+    pesanan/[id]/page.tsx
+    page.tsx
+  globals.css
+  layout.tsx
+  not-found.tsx
+  page.tsx
+components/
+  cart/
   common/
   layout/
+  orders/
   products/
   ui/
 constants/
+  homepage.ts
   site.ts
   theme.ts
 docs/
@@ -176,32 +155,27 @@ features/
   cart/
   checkout/
   orders/
+  payment/
   products/
-  wishlist/
-hooks/
+  shipping/
 lib/
   env.ts
+  format.ts
   supabase/
     client.ts
     middleware.ts
     server.ts
+    service.ts
   utils.ts
-public/
-services/
+proxy.ts
+supabase/
+  migrations/
 types/
-utils/
 ```
 
-This reflects the current foundation. It is not a completed e-commerce
-implementation.
+## Security & Architectural Principles
 
-## Project Status and Limitations
-
-- Foundation only.
-- No database schema or migrations.
-- No storage configuration.
-- No authentication pages.
-- No production checkout or payment path.
-- UI is a minimal milestone placeholder.
-
-See `docs/roadmap.md` for the next milestones.
+- **Server-Side Price Validation**: Product prices, stock levels, and order subtotals are strictly recalculated on the server using database records during order creation. Client payloads are never trusted for monetary values.
+- **Historical Order Snapshots**: `order_items` stores historical `price_at_time` and `product_name` snapshots to preserve purchase records even if product prices or names change over time.
+- **Service-Role Isolation**: Supabase service-role client is used exclusively in server-only contexts (webhooks, admin stats, order updates) and is never bundled to the client.
+- **Route Protection**: Next.js proxy/middleware validates user sessions and enforces `ADMIN_EMAIL` authorization for `/admin/*` routes.
