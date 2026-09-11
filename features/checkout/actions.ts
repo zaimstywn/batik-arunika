@@ -2,15 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { checkoutPayloadSchema } from "@/features/checkout/schemas";
-import { createMidtransTransaction } from "@/features/payment/midtrans";
+import { createInvoice } from "@/features/payment/xendit";
 import { createClient } from "@/lib/supabase/server";
 
 export type CheckoutActionResult = {
   success: boolean;
   message?: string;
   orderId?: string;
-  paymentToken?: string;
-  redirectUrl?: string;
+  invoiceUrl?: string;
 };
 
 export async function createOrderAction(values: unknown): Promise<CheckoutActionResult> {
@@ -52,10 +51,16 @@ export async function createOrderAction(values: unknown): Promise<CheckoutAction
   for (const clientItem of items) {
     const dbProduct = productMap.get(clientItem.productId);
     if (!dbProduct) {
-      return { success: false, message: `Produk dengan ID ${clientItem.productId} tidak ditemukan.` };
+      return {
+        success: false,
+        message: `Produk dengan ID ${clientItem.productId} tidak ditemukan.`,
+      };
     }
     if (dbProduct.stock < clientItem.quantity) {
-      return { success: false, message: `Stok produk ${dbProduct.name} tidak mencukupi (tersisa ${dbProduct.stock}).` };
+      return {
+        success: false,
+        message: `Stok produk ${dbProduct.name} tidak mencukupi (tersisa ${dbProduct.stock}).`,
+      };
     }
 
     const lineTotal = dbProduct.price * clientItem.quantity;
@@ -115,13 +120,15 @@ export async function createOrderAction(values: unknown): Promise<CheckoutAction
     ...item,
   }));
 
-  const { error: itemsError } = await supabase.from("order_items").insert(orderItemsPayload);
+  const { error: itemsError } = await supabase
+    .from("order_items")
+    .insert(orderItemsPayload);
 
   if (itemsError) {
     return { success: false, message: "Gagal menyimpan rincian pesanan." };
   }
 
-  // 6. Create Midtrans Snap transaction (server-side, gross from DB)
+  // 6. Create Xendit Invoice (server-side, amount calculated from verified DB prices)
   const email =
     user?.email ??
     (typeof user?.user_metadata?.email === "string"
@@ -129,19 +136,18 @@ export async function createOrderAction(values: unknown): Promise<CheckoutAction
       : undefined);
 
   try {
-    const snap = await createMidtransTransaction(
+    const invoice = await createInvoice(
       orderRecord.id,
       grandTotal,
       {
-        firstName: address.recipientName,
+        givenNames: address.recipientName,
         email,
-        phone: address.phone,
+        mobileNumber: address.phone,
       },
       verifiedOrderItems.map((item) => ({
-        id: item.product_id,
+        name: item.product_name,
         price: item.price_at_time,
         quantity: item.quantity,
-        name: item.product_name,
       }))
     );
 
@@ -150,15 +156,14 @@ export async function createOrderAction(values: unknown): Promise<CheckoutAction
     return {
       success: true,
       orderId: orderRecord.id,
-      paymentToken: snap.token,
-      redirectUrl: snap.redirectUrl,
+      invoiceUrl: invoice.invoiceUrl,
     };
   } catch (error) {
     return {
       success: false,
       message:
         error instanceof Error
-          ? `Pesanan tersimpan, tetapi pembayaran gagal dibuat: ${error.message}`
+          ? `Pesanan tersimpan, tetapi pembayaran Xendit gagal dibuat: ${error.message}`
           : "Pesanan tersimpan, tetapi pembayaran gagal dibuat.",
       orderId: orderRecord.id,
     };

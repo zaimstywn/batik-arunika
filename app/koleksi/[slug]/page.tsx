@@ -99,7 +99,7 @@ export default async function ProductDetailPage({ params }: Props) {
             <div className="space-y-4 pt-6 border-t border-border">
               <AddToCart product={product} />
               <p className="text-center text-xs text-muted-foreground">
-                Pembayaran aman melalui Midtrans Sandbox • Pengiriman via Biteship
+                Pembayaran aman melalui Xendit • Pengiriman via Biteship
               </p>
             </div>
           </div>

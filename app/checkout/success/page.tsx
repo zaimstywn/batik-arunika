@@ -20,6 +20,11 @@ const statusCopy: Record<string, { title: string; message: string }> = {
     message:
       "Terima kasih telah berbelanja di Batik Arunika. Pesanan Anda sedang diproses oleh tim kami.",
   },
+  mock_paid: {
+    title: "Pesanan Dibuat (Mock Mode)",
+    message:
+      "Pesanan Anda berhasil dibuat dalam mode simulasi pengembangan Xendit. Di lingkungan produksi, Anda akan diarahkan ke halaman invoice Xendit.",
+  },
   pending: {
     title: "Menunggu Pembayaran",
     message:
@@ -28,12 +33,7 @@ const statusCopy: Record<string, { title: string; message: string }> = {
   error: {
     title: "Pembayaran Gagal",
     message:
-      "Terjadi kendala saat pembayaran. Pesanan tetap tercatat; silakan coba lagi atau hubungi kami.",
-  },
-  closed: {
-    title: "Jendela Pembayaran Ditutup",
-    message:
-      "Pesanan Anda sudah dibuat dan menunggu pembayaran. Status resmi akan diperbarui melalui webhook Midtrans.",
+      "Terjadi kendala saat pembayaran di Xendit. Pesanan tetap tercatat; silakan coba lagi atau hubungi kami.",
   },
 };
 
@@ -45,13 +45,13 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
     (status ? statusCopy[status] : undefined) ?? {
       title: "Pesanan Berhasil Dibuat!",
       message:
-        "Terima kasih telah berbelanja di Batik Arunika. Status pembayaran resmi mengikuti konfirmasi webhook Midtrans.",
+        "Terima kasih telah berbelanja di Batik Arunika. Status pembayaran resmi mengikuti konfirmasi webhook Xendit.",
     };
 
   const icon =
-    status === "success" ? (
+    status === "success" || status === "mock_paid" ? (
       <CheckCircle2 className="size-12 text-emerald-600" aria-hidden="true" />
-    ) : status === "pending" || status === "closed" || !status ? (
+    ) : status === "pending" || !status ? (
       <Clock className="size-12 text-amber-600" aria-hidden="true" />
     ) : (
       <XCircle className="size-12 text-destructive" aria-hidden="true" />
