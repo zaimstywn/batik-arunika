@@ -76,7 +76,7 @@ Status: COMPLETED.
 - SEO and error-state review.
 - Final lint, typecheck, build, and production readiness review.
 
-## Milestone 12 — Customer Features (Phase 5: Post-Launch Enhancements)
+## Milestone 12 — Customer Features & Product Reviews (Phase 5: Post-Launch Enhancements)
 
 Status: COMPLETED.
 
@@ -86,6 +86,7 @@ Status: COMPLETED.
 - ✓ Wishlist functionality with heart icon toggle on product cards
 - ✓ Address Book with full CRUD operations and default address management
 - ✓ Account Settings with profile update and password change
+- ✓ Product Reviews and Star Ratings with verified order review submission
 
 **Technical Implementation:**
 - Customer dashboard layout with sidebar navigation
